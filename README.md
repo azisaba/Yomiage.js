@@ -2,7 +2,7 @@
 This is Discord bot program. 
 It make it possible to read a message sent by user in Voice Channel instead User. 
   
-You can use with docker-compose. docker-compose.yml is located in [example](example) directory. 
+You can use with docker-compose. A docker-compose.yml is located in [example](example) directory. 
 You need to change volume path for saving dictionary data. 
 
 ## Install with docker-compose
@@ -33,6 +33,7 @@ This repository adopts git-flow.
 
 #### Type
 - **feat**: A new feature
+- **change**: Change a feature or remove
 - **fix**: A bug fix
 - **docs**: Documentation only changes
 - **style**: Changes that do not affect the meaning of the code (white-space, formatting, etc)
