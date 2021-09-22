@@ -1,4 +1,3 @@
-
 class Config {
 
     /**
@@ -9,7 +8,7 @@ class Config {
         this.filename = filename;
         //  load setting
         const data = this.loadYamlFile(this.filename);
-        if (data !== undefined && data !== null){
+        if (data !== undefined && data !== null) {
             this.data = data
         }
     }
@@ -32,4 +31,4 @@ class Config {
     }
 }
 
-export default Config;
+module.exports = Config;
