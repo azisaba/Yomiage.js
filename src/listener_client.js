@@ -67,4 +67,4 @@ class ListenerClient {
 
 }
 
-export default ListenerClient;
+module.exports =  ListenerClient;
