@@ -1,4 +1,6 @@
 token:
-  - TOKEN_0
-  - TOKEN_1
-  - TOKEN_2
+  listener: LISTENER_TOKEN
+  speaker:
+    - TOKEN_0
+    - TOKEN_1
+    - TOKEN_2
