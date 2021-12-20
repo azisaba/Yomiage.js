@@ -4,13 +4,14 @@ const yaml = require('js-yaml');
 class Dict{
     constructor(root) {
         this.dataPath = `${root}/dict.yml`;
-        //  create file
-        if (!fs.existsSync(this.dataPath)) {
-            fs.closeSync(fs.openSync(this.dataPath, 'w'));
-            console.log('create a data file');
+        //  load yaml
+        let yamlText;
+        if (fs.existsSync(this.dataPath)) {
+            yamlText = fs.readFileSync(this.dataPath, 'utf8');
+        } else {
+            yamlText = "{}";
         }
-        //
-        const yamlText = fs.readFileSync(this.dataPath, 'utf8');
+
         try {
             this.dictionary = yaml.load(yamlText);
         } catch (e) {
