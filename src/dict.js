@@ -22,7 +22,8 @@ class Dict{
     }
 
     save() {
-        fs.writeFile(this.dataPath, this.dictionary, 'utf8', (err) => {
+        const data = yaml.dump(this.dictionary);
+        fs.writeFile(this.dataPath, data, 'utf8', (err) => {
             if (err) {
                 console.error(err.message);
                 console.log("can not save dictionary data. exit.");
