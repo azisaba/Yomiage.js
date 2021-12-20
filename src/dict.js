@@ -44,8 +44,8 @@ class Dict{
 
     replace(msg) {
         //  replace
-        this.dictionary.forEach((word, pronunciation) => {
-            msg.replace(word, pronunciation)
+        Object.keys(this.dictionary).forEach(word => {
+            msg.replace(word, this.dictionary[word]);
         });
         return msg;
     }
