@@ -83,7 +83,7 @@ class ListenerClient {
                 //  help
                 case "help":
                     msg.channel.send({
-                        embeds: {
+                        embeds: [{
                             title: ':question: ヘルプ',
                             description:
                                 "Command:\n" +
@@ -92,7 +92,7 @@ class ListenerClient {
                                 "- ^status : ステータスを表示します\n" +
                                 "- ^dict add/remove <A> <B> : AをBと呼ぶ辞書の追加/削除\n" +
                                 "- ^help : ヘルプを表示します"
-                        }
+                        }]
                     });
                     break;
 
