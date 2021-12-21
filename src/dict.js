@@ -38,8 +38,14 @@ class Dict{
     }
 
     remove(word) {
+        //  key does not exist
+        if (!word in this.dictionary) {
+            return false;
+        }
         delete this.dictionary[word];
         this.save();    //  save
+
+        return true;
     }
 
     replace(msg) {

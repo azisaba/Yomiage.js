@@ -11,7 +11,7 @@ class ListenerClient {
         this.client.on('voiceStateUpdate', async (oldState, newState) => this.onLeaveVoiceChat(oldState, newState));
 
         //  login
-        this.client.login(token).then(r => {
+        this.client.login(token).then(() => {
             this.enabled = true;
         });
     }
@@ -63,9 +63,13 @@ class ListenerClient {
                                 msg.channel.send(":boom:エラー:構文が不正です。");
                                 break;
                             }
-                            //  add
-                            this.dict.remove(args[2]);
-                            msg.channel.send(`${args[2]} を辞書から削除しました`);
+                            //  remove
+                            if (this.dict.remove(args[2])) {
+                                msg.channel.send(`${args[2]} を辞書から削除しました`);
+                            } else {
+                                msg.channel.send(":boom:エラー:そのような単語はありません");
+                            }
+
                             break;
 
                         default:
@@ -77,7 +81,7 @@ class ListenerClient {
 
                 //  status
                 case 'status':
-
+                    //  TODO show available / busy bots
                     break;
 
                 //  help
