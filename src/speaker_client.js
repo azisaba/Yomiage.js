@@ -1,4 +1,5 @@
 const {Client, Intents} = require('discord.js');
+const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
 
 class SpeakerClient {
     static INTERVAL_TIME_MS = 1000;
@@ -7,7 +8,7 @@ class SpeakerClient {
         this.client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
 
         //  login
-        this.client.login(token).then(r => {
+        this.client.login(token).then(() => {
             this.enabled = true;
 
             //  set interval
@@ -28,12 +29,19 @@ class SpeakerClient {
 
     }
 
+    connect(id) {
+
+    }
+
+    disconnect(id) {
+
+    }
+
     /**
      * Interval callback of reading message
      * @private
      */
     _intervalCallback() {
-
         //  check shutdown
         if(!this.enabled) {
             //  cancel
