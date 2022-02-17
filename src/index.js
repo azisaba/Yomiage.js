@@ -37,12 +37,14 @@ if (speaker_tokens.length <= 0) {
 }
 
 //  launch listener client
-const listener = new ListenerClient(listener_token, dict);
-client_manager.setListener(listener);
+const listener = new ListenerClient(listener_token, dict, client_manager);
+client_manager.listener = listener;
 
 //  launch speaker client
+const speakers = [];
 speaker_tokens.forEach((token) => {
-    const speaker = new SpeakerClient(token);
+    const speaker = new SpeakerClient(token, dataDirectoryPath);
     //  add instance
-    client_manager.addSpeaker(speaker);
+    speakers.push(speaker);
 });
+client_manager.speakers = speakers;
