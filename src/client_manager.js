@@ -1,30 +1,30 @@
 
-class Client_manager {
+class ClientManager {
 
     constructor() {
         //  init map
-        this.listener = null;
-        this.speakers = [];
+        this._listener = null;
+        this._speakers = [];
     }
 
     set listener(client) {
-        this.listener = client;
+        this._listener = client;
     }
 
     get listener() {
-        return this.listener;
+        return this._listener;
     }
 
-    set speakers(client) {
-        this.speakers.push(client);
+    set speakers(clients) {
+        this._speakers = clients;
     }
-    
+
     get speakers() {
-        return this.speakers;
+        return this._speakers;
     }
 
 
 
 }
 
-module.exports = Client_manager;
+module.exports = ClientManager;
