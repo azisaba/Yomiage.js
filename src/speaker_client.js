@@ -66,9 +66,10 @@ class SpeakerClient {
                     });
                 });
 
-
             //  set interval
             this._timer = setInterval(() => this._intervalCallback(), SpeakerClient.INTERVAL_TIME_MS);
+
+            console.log(`Speaker Client is Online! id: ${this.client.user.id}`);
         });
     }
 
@@ -105,7 +106,7 @@ class SpeakerClient {
             //  client id is used as group id.
             //  ATTENTION: you need to change here,
             //  if client cannot join some voice channels at the same time.
-            group: this.client.id
+            group: this.client.user.id
         });
 
         //  wait until VoiceConnection is connecting
@@ -147,7 +148,7 @@ class SpeakerClient {
      */
     async disconnect(id) {
         //  leave vc
-        const connection = getVoiceConnection(id, this.client.id);
+        const connection = getVoiceConnection(id, this.client.user.id);
         if (connection === undefined) {
 
             return false;
@@ -189,7 +190,7 @@ class SpeakerClient {
                     });
 
                 } else if (channel.isVoice()) {
-                    const connection = getVoiceConnection(id, this.client.id);
+                    const connection = getVoiceConnection(id, this.client.user.id);
                     //  if failed getting connection, return false.
                     if (connection === undefined) {
                         return false;
@@ -254,7 +255,7 @@ class SpeakerClient {
         while (this.messages.length > 0) {
             const message = this.messages.shift();
             //  check bot is connected
-            const connection = getVoiceConnection(message.guild , this.client.id);
+            const connection = getVoiceConnection(message.guild , this.client.user.id);
             if (connection === undefined) continue;
             //  check voice channel id
             if (connection.joinConfig.channelId !== message.channel) continue;
