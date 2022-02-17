@@ -35,7 +35,7 @@ class SpeakerClient {
 
         //  login
         this.client.login(token).then(() => {
-            this.enabled = true;
+            this._enabled = true;
 
             /*
                 task include channel id, voice channel id as Object
@@ -243,7 +243,7 @@ class SpeakerClient {
      */
     _intervalCallback() {
         //  check shutdown
-        if(!this.enabled) {
+        if(!this._enabled) {
             //  cancel
             clearInterval(this._timer);
             //  logout
