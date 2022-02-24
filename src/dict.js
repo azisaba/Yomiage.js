@@ -1,7 +1,7 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
 
-class Dict{
+class Dict {
     constructor(root) {
         this.dataPath = `${root}/dict.yml`;
         //  load yaml
@@ -48,10 +48,14 @@ class Dict{
         return true;
     }
 
+    map() {
+        return this.dictionary;
+    }
+
     replace(msg) {
         //  replace
         Object.keys(this.dictionary).forEach(word => {
-            msg.replace(word, this.dictionary[word]);
+            msg = msg.replaceAll(word, this.dictionary[word]);
         });
         return msg;
     }

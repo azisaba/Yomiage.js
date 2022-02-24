@@ -4,28 +4,26 @@
  */
 
 const {Client, Intents} = require('discord.js');
-const {joinVoiceChannel,
+const {
+    joinVoiceChannel,
     createAudioPlayer,
     createAudioResource,
-    VoiceConnectionReadyState,
     getVoiceConnection,
     NoSubscriberBehavior,
-    AudioPlayerIdleState
+    VoiceConnectionStatus,
+    AudioPlayerStatus
 } = require('@discordjs/voice');
-// const YomiageMessage = require('./yomiage_message.js');
 const textToSpeech = require('@google-cloud/text-to-speech');
 const fs = require('fs');
-// const util = require('util');
 
 class SpeakerClient {
     static INTERVAL_TIME_MS = 1000;
     static SPEAKER_STATUS = {
-        IDLE: 0,
-        JOINED: 1
+        IDLE: 0, JOINED: 1
     };
 
     constructor(token, data_directory) {
-        this.client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
+        this.client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]});
         this._data_directory = data_directory;
         //  init message queue
         this.messages = [];
@@ -36,32 +34,36 @@ class SpeakerClient {
         //  login
         this.client.login(token).then(() => {
             this._enabled = true;
+            this._lock = false;
+            this._destroy_request = false;
 
             /*
                 task include channel id, voice channel id as Object
              */
             this.status = {
-                'name' : this.client.user.username,
-                'id' : this.client.user.id,
-                /*
+                'name': this.client.user.username, 'id': this.client.user.id, /*
                  * Task contains a list of log-in info(guild, text/voice channel. etc.).
                  * guild: string (not null)
                  * channel: string (default: "0")
                  * voice_channel: string (default: "0")
                  * status: SPEAKER_STATUS[int] (idle/joined)
                  */
-                'task' : []
+                'task': []
             };
             //  add task
             this.client.guilds.fetch()  //  get list of guild
                 .then(guilds => {
+                    //  map to array
+                    guilds = guilds.map(guild => guild);
+
                     guilds.forEach((guild, index) => {
                         //  insert
                         this.status.task[index] = {
                             'guild': guild.id,
-                            'channel': '0',
-                            'voice_channel': '0',
-                            'status': SpeakerClient.SPEAKER_STATUS.IDLE
+                            'channel': 0,
+                            'voice_channel': 0,
+                            'status': SpeakerClient.SPEAKER_STATUS.IDLE,
+                            'speed': 1.25
                         };
                     });
                 });
@@ -99,11 +101,11 @@ class SpeakerClient {
      */
     async connect(channel, vc) {
         //  join vc
+        const guild = this.client.guilds.cache.find(g => g.id === vc.guild.id);
         const connection = joinVoiceChannel({
             channelId: vc.id,
             guildId: vc.guildId,
-            adapterCreator: vc.guild.voiceAdapterCreator,
-            //  client id is used as group id.
+            adapterCreator: guild.voiceAdapterCreator, //  client id is used as group id.
             //  ATTENTION: you need to change here,
             //  if client cannot join some voice channels at the same time.
             group: this.client.user.id
@@ -111,7 +113,7 @@ class SpeakerClient {
 
         //  wait until VoiceConnection is connecting
         const _start_time = new Date();
-        while (connection.state !== VoiceConnectionReadyState) {
+        while (connection.state.status !== 'signalling') {
             //  time out
             const _now_time = new Date();
             if (_now_time - _start_time > 5000) {   //  if client cannot connect vc while 5s, return 0;
@@ -124,16 +126,15 @@ class SpeakerClient {
 
         //  write status
         const guildId = vc.guildId;
-        this.status.task.forEach((task, index) => {
-           if (task['guild'] === guildId) {
-               //   insert
-               this.status.task[index]['channel'] = vc.id;
-               this.status.task[index]['voice_channel'] = channel.id;
-               this.status.task[index]['status'] = SpeakerClient.SPEAKER_STATUS.JOINED;
+        const status_index = this.status.task.findIndex((task) => task['guild'] === guildId)
+        if (status_index !== -1) {
+            this.status.task[status_index]['channel'] = channel.id;
+            this.status.task[status_index]['voice_channel'] = vc.id;
+            this.status.task[status_index]['status'] = SpeakerClient.SPEAKER_STATUS.JOINED;
 
-               return true;
-           }
-        });
+            return true;
+        }
+
 
         //  nothing found
         connection.disconnect();
@@ -147,23 +148,28 @@ class SpeakerClient {
      * @param id guild channel id
      */
     async disconnect(id) {
+        //  request
+        if (this._lock) {
+            this._destroy_request = true;
+            while (this._destroy_request) await this._sleep(100);
+        }
+
         //  leave vc
         const connection = getVoiceConnection(id, this.client.user.id);
         if (connection === undefined) {
-
             return false;
         }
-        //  disconnect
-        connection.disconnect();
+
+        //  disconnect and destroy
+        connection.destroy();
 
         //  change status IDLE.
-        this.status.task.forEach((task, index) => {
-            if (task['guild'] === id) {
-                //   insert
-                this.status.task[index]['status'] = SpeakerClient.SPEAKER_STATUS.IDLE;
-                return true;
-            }
-        });
+        const status_index = this.status.task.findIndex((task) => task['guild'] === id);
+        if (status_index !== -1) {
+            //   insert
+            this.status.task[status_index]['status'] = SpeakerClient.SPEAKER_STATUS.IDLE;
+            return true;
+        }
 
         return false;
     }
@@ -172,41 +178,113 @@ class SpeakerClient {
      * If channel is tracked, return True.
      * @param id text/voice channel id
      */
-    isTracked(id) {
-
+    async isTracked(id) {
         //  get channel with id
-        this.client.channels.fetch(id)
+        return await this.client.channels.fetch(id)
             .then(channel => {
+
                 //  check channel type
                 if (channel.isText()) {
                     //  check status
-                    this.status.task.forEach(task => {
-                        if (task['status'] === SpeakerClient.SPEAKER_STATUS.JOINED){
+                    for (const task of this.status.task) {
+                        if (task['status'] === SpeakerClient.SPEAKER_STATUS.JOINED) {
                             //  if channelId(in task) match param's channelId, return true.
                             if (task['channel'] === id) {
                                 return true;
                             }
                         }
-                    });
-
+                    }
+                    //  default
+                    return false;
                 } else if (channel.isVoice()) {
-                    const connection = getVoiceConnection(id, this.client.user.id);
+                    const connection = getVoiceConnection(channel.guild.id, this.client.user.id);
                     //  if failed getting connection, return false.
                     if (connection === undefined) {
+                        return false;
+                    }
+                    //  check connection is destroyed.
+                    if (connection.state.status === VoiceConnectionStatus.Destroyed) {
                         return false;
                     }
                     //  check vc channel
                     if (connection.joinConfig.channelId === channel.id) {
                         return true;
                     }
-                } else return false;
+
+                    //  default
+                    return false;
+                } else return false;    //  return false if channel is neither text nor voice.
             })
-            .catch(error => {
+            .catch(() => {
                 //  never found channel
                 return false;
             });
+    }
 
+    /**
+     * check bot is able to connect vc
+     * @param guildId
+     */
+    isConnectable(guildId) {
+        const connection = getVoiceConnection(guildId, this.client.user.id);
+        if (connection === undefined) {
+            return true;
+        }
+        if (connection.state.status === VoiceConnectionStatus.Destroyed) {
+            return true;
+        }
         return false;
+    }
+
+    /**
+     * check bot is able to access guild
+     * @param guildId
+     */
+    isAccessible(guildId) {
+        return this.client.guilds.cache.find(guild => guild.id === guildId) !== undefined;
+    }
+
+    /**
+     * get voice channel id from text channel id
+     * couldn't find channel, return undefined
+     * @param channelId Text channel id
+     */
+    getVoiceChannelId(channelId) {
+        for (const task of this.status.task) {
+            if (task['channel'] === channelId) {
+                return task['voice_channel'];
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * set speaking rate
+     * @param guildId
+     * @param speed
+     * @returns {boolean}
+     */
+    setSpeakingRate(guildId, speed) {
+        const status_index = this.status.task.findIndex((task) => task['guild'] === guildId);
+        if (status_index !== -1) {
+            //   insert
+            this.status.task[status_index]['speed'] = speed;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * get speaking rate
+     * @param guildId
+     * @returns {number|*}
+     */
+    getSpeakingRate(guildId) {
+        const status_index = this.status.task.findIndex((task) => task['guild'] === guildId);
+        if (status_index !== -1) {
+            return this.status.task[status_index]['speed'];
+        }
+        return 1;
     }
 
     /**
@@ -214,22 +292,21 @@ class SpeakerClient {
      * @param client google cloud client
      * @param directory
      * @param text
+     * @param speed
      * @returns {Promise<unknown>}
      */
-    async voiceGenerator (client, directory, text) {
+    async voiceGenerator(client, directory, text, speed) {
         const request = {
             input: {text: text},
             voice: {languageCode: 'ja-JP', ssmlGender: 'NEUTRAL'},
-            audioConfig: {audioEncoding: 'MP3', speaking_rate: 1.25},
+            audioConfig: {audioEncoding: 'MP3', speakingRate: speed},
         };
 
         const [response] = await client.synthesizeSpeech(request);
         //  file path
-        const r = Math.round(999);
+        const r = Math.floor(Math.random() * 100);
         const path = `${directory}/${r}.mp3`;
 
-        // const writeFile = util.promisify(fs.writeFile);
-        // await writeFile(path, response.audioContent, 'binary');
         fs.writeFileSync(path, response.audioContent, 'binary');
 
         return new Promise(resolve => {
@@ -241,9 +318,9 @@ class SpeakerClient {
      * Interval callback of reading message
      * @private
      */
-    _intervalCallback() {
+    async _intervalCallback() {
         //  check shutdown
-        if(!this._enabled) {
+        if (!this._enabled) {
             //  cancel
             clearInterval(this._timer);
             //  logout
@@ -252,31 +329,51 @@ class SpeakerClient {
             console.log('shutdown done.');
         }
 
+        while (this._lock) await this._sleep(100);
+
         while (this.messages.length > 0) {
             const message = this.messages.shift();
+            //  log
+            console.log(`vc: ${message.channel} message: ${message.message}`);
             //  check bot is connected
-            const connection = getVoiceConnection(message.guild , this.client.user.id);
+            const connection = getVoiceConnection(message.guild, this.client.user.id);
             if (connection === undefined) continue;
+
             //  check voice channel id
             if (connection.joinConfig.channelId !== message.channel) continue;
 
-            this.voiceGenerator(this._google_client, this._data_directory, message.message).then(async path => {
+            const speakingRate = this.getSpeakingRate(message.guild);
+            //  lock
+            this._lock = true;
+            await this.voiceGenerator(this._google_client, this._data_directory, message.message, speakingRate).then(async path => {
                 const player = createAudioPlayer({
                     behaviors: {
                         noSubscriber: NoSubscriberBehavior.Pause,
-                    },
+                    }
                 });
+
                 const resource = createAudioResource(path);
                 player.play(resource);
                 //  subscribe
-                connection.subscribe(player);
+                const subscription = connection.subscribe(player);
 
                 //  wait until finish playing
-                while (player.state !== AudioPlayerIdleState) {
+                while (player.state.status !== AudioPlayerStatus.Idle) {
+                    //  destroy request
+                    if (this._destroy_request) {
+                        //  stop
+                        player.stop(true);
+                        subscription.unsubscribe();
+                        //  turn off
+                        this._destroy_request = false;
+                        break;
+                    }
                     await this._sleep(100);
                 }
-                //  continue
+
+                fs.unlinkSync(path);
             });
+            this._lock = false;
         }
         //  do nothing
     }
@@ -296,4 +393,4 @@ class SpeakerClient {
     }
 }
 
-module.exports =  SpeakerClient;
+module.exports = SpeakerClient;
