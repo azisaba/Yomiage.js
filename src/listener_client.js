@@ -287,8 +287,8 @@ class ListenerClient {
                 cleanedMessage = cleanedMessage.replaceAll(/``(.*?)[\\n ]?([^]+?)``/g, '').replaceAll("`", '');
                 //  remove invisible message
                 cleanedMessage = cleanedMessage.replaceAll(/||(.*?)[\n ]?([^]+?)||/g, '');
-                //  remove special icon
-                cleanedMessage = cleanedMessage.replaceAll(/<:([a-zA-Z0-9_\-]+):\d+>/g, '$1');
+                //  remove special emoji
+                cleanedMessage = cleanedMessage.replaceAll(/<a?:([a-zA-Z0-9_\-]+):\d+>/g, '$1');
                 //  dict
                 cleanedMessage = this.dict.replace(cleanedMessage);
 
