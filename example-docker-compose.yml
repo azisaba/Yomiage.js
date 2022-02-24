@@ -1,0 +1,12 @@
+services:
+  yomiage:
+    image: node:latest
+    restart: always
+    environment:
+      DATA_DIRECTORY: "./data/"
+      CONFIG_PATH: "./data/config.yml"
+      GOOGLE_APPLICATION_CREDENTIALS: "./data/google.json"
+    volumes:
+      - ../yomiage.js:/app
+    working_dir: /app
+    command: bash -c 'yarn && node src/index.js'
