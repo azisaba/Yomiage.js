@@ -1,17 +1,15 @@
 # Yomiage.js
 
-This is Discord bot program. It make it possible to read a message sent by user in Voice Channel instead User.
+This is Discord bot program. It makes it possible to read a message sent by user in Voice Channel instead User.
 
 You can use with docker-compose. A docker-compose.yml is located in [example](example) directory. You need to change
 volume path for saving dictionary data.
 
 ## Install with docker-compose
 
-coming soon...
-
-## install without docker-compose
-
-coming soon...
+1. make data folder ,and put config.yml and google.json(google cloud auth key)
+2. copy example-docker-compose.yml to docker-compose.yml.
+3. run ``docker-compose up -d``
 
 ## Develop
 
