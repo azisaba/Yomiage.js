@@ -218,8 +218,8 @@ class ListenerClient {
                     switch (args[1]) {
                         case "speed": {
                             const speed = args.length < 3 ? undefined : Number.parseFloat(args[2]);
-                            if (Number.isNaN(speed) || speed < 0 || speed > 4) {
-                                msg.channel.send(":boom:エラー:0以上4未満の浮動小数点数で指定してください。");
+                            if (Number.isNaN(speed) || speed < 0.25 || speed > 4.0) {
+                                msg.channel.send(":boom:エラー:0.25以上4未満の浮動小数点数で指定してください。");
                                 break;
                             }
 
@@ -286,7 +286,7 @@ class ListenerClient {
                 //  remove code block
                 cleanedMessage = cleanedMessage.replaceAll(/``(.*?)[\\n ]?([^]+?)``/g, '').replaceAll("`", '');
                 //  remove invisible message
-                cleanedMessage = cleanedMessage.replaceAll(/||(.*?)[\n ]?([^]+?)||/g, '');
+                cleanedMessage = cleanedMessage.replaceAll(/\|\|(.*?)[\n ]?([^]+?)\|\|/g, '');
                 //  remove special emoji
                 cleanedMessage = cleanedMessage.replaceAll(/<a?:([a-zA-Z0-9_\-]+):\d+>/g, '$1');
                 //  dict
