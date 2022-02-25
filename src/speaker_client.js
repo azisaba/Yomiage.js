@@ -371,7 +371,11 @@ class SpeakerClient {
                     await this._sleep(100);
                 }
 
-                fs.unlinkSync(path);
+                try {
+                    fs.unlinkSync(path);
+                } catch (error) {
+                    console.log(`error: ${path} is not exist`);
+                }
             });
             this._lock = false;
         }
