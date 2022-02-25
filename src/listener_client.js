@@ -153,7 +153,7 @@ class ListenerClient {
                             let message = '';
                             keys.forEach((word, index) => {
                                 if (index >= words_per_page * (page - 1)) {
-                                    if (index > words_per_page * page) return;
+                                    if (index >= words_per_page * page) return;
                                     //  insert
                                     message += `${index}: ${word} => ${dictionary[word]}\n`;
                                 }
