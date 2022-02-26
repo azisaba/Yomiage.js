@@ -243,6 +243,26 @@ class ListenerClient {
                     break;
                 }
 
+                //  skip
+                case "skip": {
+                    //  does user connect to vc
+                    const member = await msg.member.fetch();
+                    if (member.voice.channel === null) {
+                        msg.channel.send(":boom:エラー:VCに接続してください。");
+                        break;
+                    }
+                    const voice_channel = await member.voice.channel.fetch();
+                    for (const bot of this.client_manager.speakers) {
+                        if (await bot.isTracked(voice_channel.id)) {
+                            msg.channel.send("現在読み上げられているメッセージをスキップします。");
+                            //  skip request
+                            bot.skipText(voice_channel.id);
+                            break main;
+                        }
+                    }
+
+                }
+
                 //  help
                 case "help": {
                     const embed = {
@@ -256,7 +276,8 @@ class ListenerClient {
                                     "- ^status : ステータスを表示します\n" +
                                     "- ^dict add/remove <A> <B> : AをBと呼ぶ辞書の追加/削除\n" +
                                     "- ^dict list <number> : 辞書一覧を表示します\n" +
-                                    "- ^setting speed <Value> : 読み上げるスピードを変更しま\n" +
+                                    "- ^setting speed <Value> : 読み上げるスピードを変更します\n" +
+                                    "- ^skip : 読み上げをスキップします\n" +
                                     "- ^help : ヘルプを表示します"
                             }
                         ]
