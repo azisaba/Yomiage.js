@@ -218,8 +218,8 @@ class ListenerClient {
                     switch (args[1]) {
                         case "speed": {
                             const speed = args.length < 3 ? undefined : Number.parseFloat(args[2]);
-                            if (Number.isNaN(speed) || speed < 0 || speed > 4) {
-                                msg.channel.send(":boom:エラー:0以上4未満の浮動小数点数で指定してください。");
+                            if (Number.isNaN(speed) || speed < 0.25 || speed > 4.0) {
+                                msg.channel.send(":boom:エラー:0.25以上4未満の浮動小数点数で指定してください。");
                                 break;
                             }
 
@@ -243,6 +243,26 @@ class ListenerClient {
                     break;
                 }
 
+                //  skip
+                case "skip": {
+                    //  does user connect to vc
+                    const member = await msg.member.fetch();
+                    if (member.voice.channel === null) {
+                        msg.channel.send(":boom:エラー:VCに接続してください。");
+                        break;
+                    }
+                    const voice_channel = await member.voice.channel.fetch();
+                    for (const bot of this.client_manager.speakers) {
+                        if (await bot.isTracked(voice_channel.id)) {
+                            msg.channel.send("現在読み上げられているメッセージをスキップします。");
+                            //  skip request
+                            bot.skipText(voice_channel.id);
+                            break main;
+                        }
+                    }
+
+                }
+
                 //  help
                 case "help": {
                     const embed = {
@@ -256,7 +276,8 @@ class ListenerClient {
                                     "- ^status : ステータスを表示します\n" +
                                     "- ^dict add/remove <A> <B> : AをBと呼ぶ辞書の追加/削除\n" +
                                     "- ^dict list <number> : 辞書一覧を表示します\n" +
-                                    "- ^setting speed <Value> : 読み上げるスピードを変更しま\n" +
+                                    "- ^setting speed <Value> : 読み上げるスピードを変更します\n" +
+                                    "- ^skip : 読み上げをスキップします\n" +
                                     "- ^help : ヘルプを表示します"
                             }
                         ]
@@ -286,7 +307,7 @@ class ListenerClient {
                 //  remove code block
                 cleanedMessage = cleanedMessage.replaceAll(/``(.*?)[\\n ]?([^]+?)``/g, '').replaceAll("`", '');
                 //  remove invisible message
-                cleanedMessage = cleanedMessage.replaceAll(/||(.*?)[\n ]?([^]+?)||/g, '');
+                cleanedMessage = cleanedMessage.replaceAll(/\|\|(.*?)[\n ]?([^]+?)\|\|/g, '');
                 //  remove special emoji
                 cleanedMessage = cleanedMessage.replaceAll(/<a?:([a-zA-Z0-9_\-]+):\d+>/g, '$1');
                 //  dict

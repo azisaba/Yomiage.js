@@ -27,6 +27,8 @@ class SpeakerClient {
         this._data_directory = data_directory;
         //  init message queue
         this.messages = [];
+        //  init skip queue
+        this._skip_queue = [];
 
         //  init google client
         this._google_client = new textToSpeech.TextToSpeechClient();
@@ -288,6 +290,15 @@ class SpeakerClient {
     }
 
     /**
+     * skip speech
+     * @param voiceChannelId
+     * @return void
+     */
+    skipText(voiceChannelId) {
+        this._skip_queue.push(voiceChannelId);
+    }
+
+    /**
      * generate voice message.
      * @param client google cloud client
      * @param directory
@@ -368,10 +379,25 @@ class SpeakerClient {
                         this._destroy_request = false;
                         break;
                     }
+                    //  skip
+                    if (this._skip_queue.includes(message.channel)) {
+                        //  stop
+                        player.stop(true);
+                        //  remove value
+                        const index = this._skip_queue.indexOf(message.channel);
+                        if (index > -1) {
+                            this._skip_queue.splice(index, 1);
+                        }
+                        break;
+                    }
                     await this._sleep(100);
                 }
 
-                fs.unlinkSync(path);
+                try {
+                    fs.unlinkSync(path);
+                } catch (error) {
+                    console.log(`error: ${path} is not exist`);
+                }
             });
             this._lock = false;
         }
