@@ -8,13 +8,11 @@ const ClientManager = require('./client_manager.js');
 ///////////////////////////
 //  read environment valuables
 const dataDirectoryPath = process.env.DATA_DIRECTORY;
-const configPath = process.env.CONFIG_PATH;
 
 
 ///////////////////////////
 //  load configuration
-const config = new Config(configPath);
-const configData = config.data;
+const configData = Config.getConfig();
 console.log(configData.token);
 
 
