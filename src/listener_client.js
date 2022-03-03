@@ -4,6 +4,7 @@
  */
 
 const {Client, Intents, Util} = require('discord.js');
+const Config = require('./config');
 
 class ListenerClient {
     constructor(token, dict, client_manager) {
@@ -17,6 +18,19 @@ class ListenerClient {
         this.client.on('messageCreate', async msg => this.onMessage(msg));
         this.client.on('voiceStateUpdate', async (oldState, newState) => this.onLeaveVC(oldState, newState));
 
+        //  cached-config
+        const cacheReload = () => {
+            this.cached_config = Config.getConfig();
+            if (this.cached_config['specific-bot'] === undefined) {
+                this.cached_config['specific-bot'] = [];
+            }
+        }
+        //  init
+        cacheReload();
+        setInterval(() => {
+            cacheReload();
+        }, 30 * 1000);
+
         //  login
         this.client.login(token).then(() => {
             this.enabled = true;
@@ -27,7 +41,8 @@ class ListenerClient {
 
     async onMessage(msg) {
         if (this.enabled === false) return; //  is enabled
-        if (msg.system || msg.author.bot || msg.author.system) return;  //  is user
+        if (msg.system || msg.author.system) return;  //  is system
+        if (msg.author.bot && !this.cached_config['specific-bot'].includes(msg.author.id)) return; //  is bot
         if (msg.content.length < 1) return; //  is empty
 
         //  prefix
@@ -260,7 +275,73 @@ class ListenerClient {
                             break main;
                         }
                     }
+                    break;
+                }
 
+                //  add specific bot
+                case "addrule": {
+                    //  length
+                    if (args.length < 2) {
+                        msg.channel.send(":boom:エラー:構文が不正です。");
+                        break;
+                    }
+
+                    const regexId =　args[1].match(/<@!(\d+)>/);
+                    if (regexId === null || regexId.length < 2) {
+                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
+                        break;
+                    }
+                    const id = regexId[1];
+
+                    let config = Config.getConfig();
+                    if (config['specific-bot'] === undefined) {
+                        config['specific-bot'] = [];
+                    } else if (config['specific-bot'].includes(id)) {
+                        msg.channel.send(":boom:エラー:すでに登録されています。");
+                        break;
+                    }
+                    //  insert config
+                    config['specific-bot'].push(id);
+                    Config.save(config);
+
+                    msg.channel.send(`${regexId[0]}を読み上げ対象にしました。`);
+                    break;
+                }
+
+                //  add specific bot
+                case "deleterule": {
+                    //  length
+                    if (args.length < 2) {
+                        msg.channel.send(":boom:エラー:構文が不正です。");
+                        break;
+                    }
+
+                    const regexId =　args[1].match(/<@!(\d+)>/);
+                    if (regexId === null || regexId.length < 2) {
+                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
+                        break;
+                    }
+                    const id = regexId[1];
+
+                    let config = Config.getConfig();
+                    if (config['specific-bot'] === undefined) {
+                        msg.channel.send(":boom:エラー:登録されていません。");
+                        break
+                    }
+                    if (!config['specific-bot'].includes(id)) {
+                        msg.channel.send(":boom:エラー:登録されていません。");
+                        break;
+                    }
+
+                    //  delete config
+                    const index = config['specific-bot'].indexOf(id);
+                    if (index > -1) {
+                        config['specific-bot'].splice(index, 1);
+                    }
+                    Config.save(config);
+
+                    msg.channel.send(`${regexId[0]}を読み上げ対象から除外しました。`);
+                    break;
                 }
 
                 //  help
@@ -278,6 +359,8 @@ class ListenerClient {
                                     "- ^dict list <number> : 辞書一覧を表示します\n" +
                                     "- ^setting speed <Value> : 読み上げるスピードを変更します\n" +
                                     "- ^skip : 読み上げをスキップします\n" +
+                                    "- ^addrule @mention : 指定したBotを読み上げ対象にします\n" +
+                                    "- ^deleterule @mention : 指定したBotを読み上げ対象から除外します\n" +
                                     "- ^help : ヘルプを表示します"
                             }
                         ]
