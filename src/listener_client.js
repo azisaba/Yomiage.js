@@ -121,6 +121,7 @@ class ListenerClient {
                         break;
                     }
 
+                    const cleanedArgs = msg.cleanContent.slice(1).split(' ');
                     switch (args[1]) {
                         case 'add': {
                             if (args.length < 4) {
@@ -128,8 +129,8 @@ class ListenerClient {
                                 break;
                             }
                             //  add
-                            this.dict.add(args[2], args[3]);
-                            msg.channel.send(`これからは ${args[2]} を ${args[3]} と読みます！`);
+                            this.dict.add(cleanedArgs[2], cleanedArgs[3]);
+                            msg.channel.send(`これからは ${cleanedArgs[2]} を ${cleanedArgs[3]} と読みます！`);
                             break;
                         }
                         case 'remove': {
@@ -138,8 +139,8 @@ class ListenerClient {
                                 break;
                             }
                             //  remove
-                            if (this.dict.remove(args[2])) {
-                                msg.channel.send(`${args[2]} を辞書から削除しました`);
+                            if (this.dict.remove(cleanedArgs[2])) {
+                                msg.channel.send(`${cleanedArgs[2]} を辞書から削除しました`);
                             } else {
                                 msg.channel.send(":boom:エラー:そのような単語はありません");
                             }
