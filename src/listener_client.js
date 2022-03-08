@@ -169,7 +169,7 @@ class ListenerClient {
                             let message = '';
                             keys.forEach((word, index) => {
                                 if (index >= words_per_page * (page - 1)) {
-                                    if (index > words_per_page * page) return;
+                                    if (index >= words_per_page * page) return;
                                     //  insert
                                     message += `${index}: ${word} => ${dictionary[word]}\n`;
                                 }
@@ -420,6 +420,9 @@ class ListenerClient {
         if (oldState.channel === null && newState.channel !== null) {
             return;
         }
+
+        //  exception
+        if (oldState.channel === null) return;
 
         const vc = await oldState.channel.fetch();
         const users = vc.members.filter(member => member.user.bot === false);
