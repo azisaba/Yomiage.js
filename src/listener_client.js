@@ -421,6 +421,9 @@ class ListenerClient {
             return;
         }
 
+        //  exception
+        if (oldState.channel === null) return;
+
         const vc = await oldState.channel.fetch();
         const users = vc.members.filter(member => member.user.bot === false);
 
