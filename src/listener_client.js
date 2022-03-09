@@ -56,6 +56,11 @@ class ListenerClient {
                 //  connect
                 case 'con': {
                     //  does user connect to vc
+                    if(msg.channel.nsfw) {
+                        msg.channel.send(":boom:エラー:NSFW(年齢制限)チャンネルは読み上げることができません。")
+                        break;
+                    }
+
                     const member = await msg.member.fetch();
                     if (member.voice.channel === null) {
                         msg.channel.send(":boom:エラー:VCに接続してください。");
