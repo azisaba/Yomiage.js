@@ -56,6 +56,11 @@ class ListenerClient {
                 //  connect
                 case 'con': {
                     //  does user connect to vc
+                    if(msg.channel.nsfw) {
+                        msg.channel.send(":boom:エラー:NSFW(年齢制限)チャンネルは読み上げることができません。")
+                        break;
+                    }
+
                     const member = await msg.member.fetch();
                     if (member.voice.channel === null) {
                         msg.channel.send(":boom:エラー:VCに接続してください。");
@@ -121,6 +126,7 @@ class ListenerClient {
                         break;
                     }
 
+                    const cleanedArgs = msg.cleanContent.slice(1).split(' ');
                     switch (args[1]) {
                         case 'add': {
                             if (args.length < 4) {
@@ -128,8 +134,8 @@ class ListenerClient {
                                 break;
                             }
                             //  add
-                            this.dict.add(args[2], args[3]);
-                            msg.channel.send(`これからは ${args[2]} を ${args[3]} と読みます！`);
+                            this.dict.add(cleanedArgs[2], cleanedArgs[3]);
+                            msg.channel.send(`これからは ${cleanedArgs[2]} を ${cleanedArgs[3]} と読みます！`);
                             break;
                         }
                         case 'remove': {
@@ -138,8 +144,8 @@ class ListenerClient {
                                 break;
                             }
                             //  remove
-                            if (this.dict.remove(args[2])) {
-                                msg.channel.send(`${args[2]} を辞書から削除しました`);
+                            if (this.dict.remove(cleanedArgs[2])) {
+                                msg.channel.send(`${cleanedArgs[2]} を辞書から削除しました`);
                             } else {
                                 msg.channel.send(":boom:エラー:そのような単語はありません");
                             }
@@ -168,7 +174,7 @@ class ListenerClient {
                             let message = '';
                             keys.forEach((word, index) => {
                                 if (index >= words_per_page * (page - 1)) {
-                                    if (index > words_per_page * page) return;
+                                    if (index >= words_per_page * page) return;
                                     //  insert
                                     message += `${index}: ${word} => ${dictionary[word]}\n`;
                                 }
@@ -419,6 +425,9 @@ class ListenerClient {
         if (oldState.channel === null && newState.channel !== null) {
             return;
         }
+
+        //  exception
+        if (oldState.channel === null) return;
 
         const vc = await oldState.channel.fetch();
         const users = vc.members.filter(member => member.user.bot === false);
