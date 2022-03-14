@@ -47,6 +47,9 @@ class ListenerClient {
 
         //  prefix
         if (msg.content.startsWith('^')) {
+            //  check permission
+            if (!msg.guild.me.permissionsIn(msg.channel).has("SEND_MESSAGES")) return;
+
             //  remove prefix and split content
             const args = msg.content.slice(1).split(' ');
             //  safety
