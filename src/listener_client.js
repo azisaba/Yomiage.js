@@ -47,6 +47,9 @@ class ListenerClient {
 
         //  prefix
         if (msg.content.startsWith('^')) {
+            //  check permission
+            if (!msg.guild.me.permissionsIn(msg.channel).has("SEND_MESSAGES")) return;
+
             //  remove prefix and split content
             const args = msg.content.slice(1).split(' ');
             //  safety
@@ -422,23 +425,27 @@ class ListenerClient {
     }
 
     async onLeaveVC(oldState, newState) {
-        if (oldState.channel === null && newState.channel !== null) {
-            return;
-        }
+        try {
+            if (oldState.channel === null && newState.channel !== null) {
+                return;
+            }
 
-        //  exception
-        if (oldState.channel === null) return;
+            //  exception
+            if (oldState.channel === null) return;
 
-        const vc = await oldState.channel.fetch();
-        const users = vc.members.filter(member => member.user.bot === false);
+            const vc = await oldState.channel.fetch();
+            const users = vc.members.filter(member => member.user.bot === false);
 
-        if (users.size <= 0 && vc.members.size > 0) {
-            for (const bot of this.client_manager.speakers) {
-                //  channel is tracked
-                if (await bot.isTracked(oldState.channel.id)) {
-                    bot.disconnect(oldState.guild.id);
+            if (users.size <= 0 && vc.members.size > 0) {
+                for (const bot of this.client_manager.speakers) {
+                    //  channel is tracked
+                    if (await bot.isTracked(oldState.channel.id)) {
+                        bot.disconnect(oldState.guild.id);
+                    }
                 }
             }
+        } catch (e) {
+            console.log(e)
         }
     }
 }
