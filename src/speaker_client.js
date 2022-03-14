@@ -102,6 +102,10 @@ class SpeakerClient {
      * @param vc
      */
     async connect(channel, vc) {
+        //  check permission
+        const permission = vc.guild.me.permissionsIn(vc.channel)
+        if (!permission.has("CONNECT") || !permission.has("SPEAK")) return false;
+
         //  join vc
         const guild = this.client.guilds.cache.find(g => g.id === vc.guild.id);
         const connection = joinVoiceChannel({
