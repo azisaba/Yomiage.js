@@ -293,6 +293,11 @@ class ListenerClient {
 
                 //  add specific bot
                 case "addrule": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
                     //  length
                     if (args.length < 2) {
                         msg.channel.send(":boom:エラー:構文が不正です。");
@@ -323,6 +328,12 @@ class ListenerClient {
 
                 //  add specific bot
                 case "deleterule": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
+
                     //  length
                     if (args.length < 2) {
                         msg.channel.send(":boom:エラー:構文が不正です。");
@@ -359,6 +370,11 @@ class ListenerClient {
 
                 //  mute user
                 case "mute": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
                     //  length
                     if (args.length < 2) {
                         msg.channel.send(":boom:エラー:構文が不正です。");
@@ -389,6 +405,12 @@ class ListenerClient {
 
                 //  unmute user
                 case "unmute": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
+
                     //  length
                     if (args.length < 2) {
                         msg.channel.send(":boom:エラー:構文が不正です。");
@@ -494,6 +516,11 @@ class ListenerClient {
 
         }
 
+    }
+
+    async hasPermission(member, name) {
+        const fetched = await member.fetch()
+        return fetched.roles.cache.some(role => role.name === name)
     }
 
     async onLeaveVC(oldState, newState) {
