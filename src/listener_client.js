@@ -24,6 +24,9 @@ class ListenerClient {
             if (this.cached_config['specific-bot'] === undefined) {
                 this.cached_config['specific-bot'] = [];
             }
+            if (this.cached_config['mute-user'] === undefined) {
+                this.cached_config['mute-user'] = [];
+            }
         }
         //  init
         cacheReload();
@@ -44,9 +47,13 @@ class ListenerClient {
         if (msg.system || msg.author.system) return;  //  is system
         if (msg.author.bot && !this.cached_config['specific-bot'].includes(msg.author.id)) return; //  is bot
         if (msg.content.length < 1) return; //  is empty
+        if (this.cached_config['mute-user'].includes(msg.author.id)) return;   //  mute user
 
         //  prefix
         if (msg.content.startsWith('^')) {
+            //  check permission
+            if (!msg.guild.me.permissionsIn(msg.channel).has("SEND_MESSAGES")) return;
+
             //  remove prefix and split content
             const args = msg.content.slice(1).split(' ');
             //  safety
@@ -286,6 +293,11 @@ class ListenerClient {
 
                 //  add specific bot
                 case "addrule": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
                     //  length
                     if (args.length < 2) {
                         msg.channel.send(":boom:エラー:構文が不正です。");
@@ -316,6 +328,12 @@ class ListenerClient {
 
                 //  add specific bot
                 case "deleterule": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
+
                     //  length
                     if (args.length < 2) {
                         msg.channel.send(":boom:エラー:構文が不正です。");
@@ -350,6 +368,83 @@ class ListenerClient {
                     break;
                 }
 
+                //  mute user
+                case "mute": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
+                    //  length
+                    if (args.length < 2) {
+                        msg.channel.send(":boom:エラー:構文が不正です。");
+                        break;
+                    }
+
+                    const regexId =　args[1].match(/<@!(\d+)>/);
+                    if (regexId === null || regexId.length < 2) {
+                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
+                        break;
+                    }
+                    const id = regexId[1];
+
+                    let config = Config.getConfig();
+                    if (config['mute-user'] === undefined) {
+                        config['mute-user'] = [];
+                    } else if (config['mute-user'].includes(id)) {
+                        msg.channel.send(":boom:エラー:すでに登録されています。");
+                        break;
+                    }
+                    //  insert config
+                    config['mute-user'].push(id);
+                    Config.save(config);
+
+                    msg.channel.send(`${regexId[0]}をmuteしました`);
+                    break;
+                }
+
+                //  unmute user
+                case "unmute": {
+                    //  permission
+                    if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                        msg.channel.send(":boom:エラー:権限がありません。");
+                        return;
+                    }
+
+                    //  length
+                    if (args.length < 2) {
+                        msg.channel.send(":boom:エラー:構文が不正です。");
+                        break;
+                    }
+
+                    const regexId =　args[1].match(/<@!(\d+)>/);
+                    if (regexId === null || regexId.length < 2) {
+                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
+                        break;
+                    }
+                    const id = regexId[1];
+
+                    let config = Config.getConfig();
+                    if (config['mute-user'] === undefined) {
+                        msg.channel.send(":boom:エラー:登録されていません。");
+                        break
+                    }
+                    if (!config['mute-user'].includes(id)) {
+                        msg.channel.send(":boom:エラー:登録されていません。");
+                        break;
+                    }
+
+                    //  delete config
+                    const index = config['mute-user'].indexOf(id);
+                    if (index > -1) {
+                        config['mute-user'].splice(index, 1);
+                    }
+                    Config.save(config);
+
+                    msg.channel.send(`${regexId[0]}をmute解除しました。`);
+                    break;
+                }
+
                 //  help
                 case "help": {
                     const embed = {
@@ -367,6 +462,8 @@ class ListenerClient {
                                     "- ^skip : 読み上げをスキップします\n" +
                                     "- ^addrule @mention : 指定したBotを読み上げ対象にします\n" +
                                     "- ^deleterule @mention : 指定したBotを読み上げ対象から除外します\n" +
+                                    "- ^mute @mention : muteします\n" +
+                                    "- ^unmute @mention : mute解除します\n" +
                                     "- ^help : ヘルプを表示します"
                             }
                         ]
@@ -421,24 +518,33 @@ class ListenerClient {
 
     }
 
+    async hasPermission(member, name) {
+        const fetched = await member.fetch()
+        return fetched.roles.cache.some(role => role.name === name)
+    }
+
     async onLeaveVC(oldState, newState) {
-        if (oldState.channel === null && newState.channel !== null) {
-            return;
-        }
+        try {
+            if (oldState.channel === null && newState.channel !== null) {
+                return;
+            }
 
-        //  exception
-        if (oldState.channel === null) return;
+            //  exception
+            if (oldState.channel === null) return;
 
-        const vc = await oldState.channel.fetch();
-        const users = vc.members.filter(member => member.user.bot === false);
+            const vc = await oldState.channel.fetch();
+            const users = vc.members.filter(member => member.user.bot === false);
 
-        if (users.size <= 0 && vc.members.size > 0) {
-            for (const bot of this.client_manager.speakers) {
-                //  channel is tracked
-                if (await bot.isTracked(oldState.channel.id)) {
-                    bot.disconnect(oldState.guild.id);
+            if (users.size <= 0 && vc.members.size > 0) {
+                for (const bot of this.client_manager.speakers) {
+                    //  channel is tracked
+                    if (await bot.isTracked(oldState.channel.id)) {
+                        bot.disconnect(oldState.guild.id);
+                    }
                 }
             }
+        } catch (e) {
+            console.log(e)
         }
     }
 }
