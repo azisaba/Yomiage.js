@@ -18,9 +18,14 @@ class ListenerClient {
         //this.client.on('messageCreate', async msg => this.onMessage(msg));
         this.client.on('raw', async e => {
             if (e.t !== 'MESSAGE_CREATE') return;
-            if (!e.d.author || !e.d.author.id) return;
             const guild = await this.client.guilds.fetch(e.d.guild_id);
             const channel = await this.client.channels.fetch(e.d.channel_id);
+            let member;
+            try {
+                member = await guild.members.fetch(e.d.author.id)
+            } catch (e) {
+                return;
+            }
             if (!channel.send) {
                 channel.send = () => {};
             }
@@ -30,7 +35,7 @@ class ListenerClient {
                 system: (e.d.flags || 0) & 16 === 16,
                 guild,
                 channel,
-                member: await guild.members.fetch(e.d.author.id),
+                member,
             });
         });
         this.client.on('voiceStateUpdate', async (oldState, newState) => this.onLeaveVC(oldState, newState));
