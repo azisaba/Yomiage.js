@@ -195,7 +195,8 @@ class ListenerClient {
                             const dictionary = this.dict.map();
                             const keys = Object.keys(dictionary);
                             //  limit checker
-                            if (words_per_page * (page - 1) > keys.length) {
+                            if (words_per_page * (page - 1) >= keys.length) {
+
                                 msg.channel.send(`:boom:エラー:${Math.ceil(keys.length / words_per_page)}ページまでです。(単語数: ${keys.length})`);
                                 break;
                             }
@@ -403,12 +404,11 @@ class ListenerClient {
                         break;
                     }
 
-                    const regexId =　args[1].match(/<@!(\d+)>/);
-                    if (regexId === null || regexId.length < 2) {
-                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
+                    const id = args[1];
+                    if (msg.guild.members.cache.find(user => user.id === id) === undefined) {
+                        msg.channel.send(":boom:エラー:ユーザIDが不正です");
                         break;
                     }
-                    const id = regexId[1];
 
                     let config = Config.getConfig();
                     if (config['mute-user'] === undefined) {
@@ -421,7 +421,7 @@ class ListenerClient {
                     config['mute-user'].push(id);
                     Config.save(config);
 
-                    msg.channel.send(`${regexId[0]}をmuteしました`);
+                    msg.channel.send(`${id}をmuteしました`);
                     break;
                 }
 
@@ -439,12 +439,11 @@ class ListenerClient {
                         break;
                     }
 
-                    const regexId =　args[1].match(/<@!(\d+)>/);
-                    if (regexId === null || regexId.length < 2) {
-                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
+                    const id = args[1];
+                    if (msg.guild.members.cache.find(user => user.id === id) === undefined) {
+                        msg.channel.send(":boom:エラー:ユーザIDが不正です");
                         break;
                     }
-                    const id = regexId[1];
 
                     let config = Config.getConfig();
                     if (config['mute-user'] === undefined) {
@@ -463,7 +462,7 @@ class ListenerClient {
                     }
                     Config.save(config);
 
-                    msg.channel.send(`${regexId[0]}をmute解除しました。`);
+                    msg.channel.send(`${id}をmute解除しました。`);
                     break;
                 }
 
@@ -484,8 +483,8 @@ class ListenerClient {
                                     "- ^skip : 読み上げをスキップします\n" +
                                     "- ^addrule @mention : 指定したBotを読み上げ対象にします\n" +
                                     "- ^deleterule @mention : 指定したBotを読み上げ対象から除外します\n" +
-                                    "- ^mute @mention : muteします\n" +
-                                    "- ^unmute @mention : mute解除します\n" +
+                                    "- ^mute <id> : muteします\n" +
+                                    "- ^unmute <id> : mute解除します\n" +
                                     "- ^help : ヘルプを表示します"
                             }
                         ]
