@@ -15,7 +15,29 @@ class ListenerClient {
         //  client
         this.client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]});
         //  event
-        this.client.on('messageCreate', async msg => this.onMessage(msg));
+        //this.client.on('messageCreate', async msg => this.onMessage(msg));
+        this.client.on('raw', async e => {
+            if (e.t !== 'MESSAGE_CREATE') return;
+            const guild = await this.client.guilds.fetch(e.d.guild_id);
+            const channel = await this.client.channels.fetch(e.d.channel_id);
+            let member;
+            try {
+                member = await guild.members.fetch(e.d.author.id)
+            } catch (e) {
+                return;
+            }
+            if (!channel.send) {
+                channel.send = () => {};
+            }
+            this.onMessage({
+                ...e.d,
+                cleanContent: Util.cleanContent(e.d.content, channel),
+                system: (e.d.flags || 0) & 16 === 16,
+                guild,
+                channel,
+                member,
+            });
+        });
         this.client.on('voiceStateUpdate', async (oldState, newState) => this.onLeaveVC(oldState, newState));
 
         //  cached-config
