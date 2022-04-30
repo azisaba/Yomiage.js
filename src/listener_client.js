@@ -403,12 +403,7 @@ class ListenerClient {
                         break;
                     }
 
-                    const regexId =　args[1].match(/<@!(\d+)>/);
-                    if (regexId === null || regexId.length < 2) {
-                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
-                        break;
-                    }
-                    const id = regexId[1];
+                    const id = args[1];
 
                     let config = Config.getConfig();
                     if (config['mute-user'] === undefined) {
@@ -439,12 +434,7 @@ class ListenerClient {
                         break;
                     }
 
-                    const regexId =　args[1].match(/<@!(\d+)>/);
-                    if (regexId === null || regexId.length < 2) {
-                        msg.channel.send(":boom:エラー:使い方が間違っています。^help");
-                        break;
-                    }
-                    const id = regexId[1];
+                    const id = args[1];
 
                     let config = Config.getConfig();
                     if (config['mute-user'] === undefined) {
