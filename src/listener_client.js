@@ -195,7 +195,8 @@ class ListenerClient {
                             const dictionary = this.dict.map();
                             const keys = Object.keys(dictionary);
                             //  limit checker
-                            if (words_per_page * (page - 1) > keys.length) {
+                            if (words_per_page * (page - 1) >= keys.length) {
+
                                 msg.channel.send(`:boom:エラー:${Math.ceil(keys.length / words_per_page)}ページまでです。(単語数: ${keys.length})`);
                                 break;
                             }
