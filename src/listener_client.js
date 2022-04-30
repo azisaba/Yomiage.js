@@ -404,6 +404,10 @@ class ListenerClient {
                     }
 
                     const id = args[1];
+                    if (msg.guild.members.cache.find(user => user.id === id) === undefined) {
+                        msg.channel.send(":boom:エラー:ユーザIDが不正です");
+                        break;
+                    }
 
                     let config = Config.getConfig();
                     if (config['mute-user'] === undefined) {
@@ -416,7 +420,7 @@ class ListenerClient {
                     config['mute-user'].push(id);
                     Config.save(config);
 
-                    msg.channel.send(`${regexId[0]}をmuteしました`);
+                    msg.channel.send(`${id}をmuteしました`);
                     break;
                 }
 
@@ -435,6 +439,10 @@ class ListenerClient {
                     }
 
                     const id = args[1];
+                    if (msg.guild.members.cache.find(user => user.id === id) === undefined) {
+                        msg.channel.send(":boom:エラー:ユーザIDが不正です");
+                        break;
+                    }
 
                     let config = Config.getConfig();
                     if (config['mute-user'] === undefined) {
@@ -453,7 +461,7 @@ class ListenerClient {
                     }
                     Config.save(config);
 
-                    msg.channel.send(`${regexId[0]}をmute解除しました。`);
+                    msg.channel.send(`${id}をmute解除しました。`);
                     break;
                 }
 
