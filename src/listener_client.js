@@ -482,8 +482,8 @@ class ListenerClient {
                                     "- ^skip : 読み上げをスキップします\n" +
                                     "- ^addrule @mention : 指定したBotを読み上げ対象にします\n" +
                                     "- ^deleterule @mention : 指定したBotを読み上げ対象から除外します\n" +
-                                    "- ^mute @mention : muteします\n" +
-                                    "- ^unmute @mention : mute解除します\n" +
+                                    "- ^mute <id> : muteします\n" +
+                                    "- ^unmute <id> : mute解除します\n" +
                                     "- ^help : ヘルプを表示します"
                             }
                         ]
