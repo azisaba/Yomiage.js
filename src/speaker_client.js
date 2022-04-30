@@ -246,8 +246,9 @@ class SpeakerClient {
      * check bot is able to access guild
      * @param guildId
      */
-    isAccessible(guildId) {
-        return this.client.guilds.cache.find(guild => guild.id === guildId) !== undefined;
+    async isAccessible(guildId) {
+        const guilds = await this.client.guilds.fetch()
+        return guilds.find(guild => guild.id === guildId) !== undefined;
     }
 
     /**

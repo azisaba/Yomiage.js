@@ -233,7 +233,7 @@ class ListenerClient {
 
                 //  status
                 case 'status': {
-                    const bots = this.client_manager.speakers.filter(speaker => speaker.isAccessible(msg.guildId));
+                    const bots = this.client_manager.speakers.filter(async speaker => await speaker.isAccessible(msg.guildId));
                     //  cannot find bot
                     if (bots.length <= 0) {
                         msg.channel.send(":boom:エラー:利用可能なBotがありません。");
