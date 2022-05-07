@@ -457,7 +457,7 @@ class ListenerClient {
                                     "- ^status : ステータスを表示します\n" +
                                     "- ^dict add/remove <A> <B> : AをBと読む辞書の追加/削除\n" +
                                     "- ^dict list <number> : 辞書一覧を表示します\n" +
-                                    "- ^setting speed <Value> : 読み上げるスピードを変更します(0.25以上4未満の浮動小数点数で指定できます。)\n" +
+                                    "- ^setting speed <value> : 読み上げるスピードを変更します(0.25以上4未満の浮動小数点数で指定できます。)\n" +
                                     "- ^skip : 読み上げをスキップします\n" +
                                     "- ^addrule @mention : 指定したBotを読み上げ対象にします\n" +
                                     "- ^deleterule @mention : 指定したBotを読み上げ対象から除外します\n" +
