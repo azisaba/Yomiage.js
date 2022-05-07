@@ -455,7 +455,7 @@ class ListenerClient {
                                     "- ^con : 読み上げを開始します\n" +
                                     "- ^dc : 切断します\n" +
                                     "- ^status : ステータスを表示します\n" +
-                                    "- ^dict add/remove <A> <B> : AをBと呼ぶ辞書の追加/削除\n" +
+                                    "- ^dict add/remove <A> <B> : AをBと読む辞書の追加/削除\n" +
                                     "- ^dict list <number> : 辞書一覧を表示します\n" +
                                     "- ^setting speed <Value> : 読み上げるスピードを変更します\n" +
                                     "- ^skip : 読み上げをスキップします\n" +
