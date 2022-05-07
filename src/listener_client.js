@@ -15,29 +15,7 @@ class ListenerClient {
         //  client
         this.client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]});
         //  event
-        //this.client.on('messageCreate', async msg => this.onMessage(msg));
-        this.client.on('raw', async e => {
-            if (e.t !== 'MESSAGE_CREATE') return;
-            const guild = await this.client.guilds.fetch(e.d.guild_id);
-            const channel = await this.client.channels.fetch(e.d.channel_id);
-            let member;
-            try {
-                member = await guild.members.fetch(e.d.author.id)
-            } catch (e) {
-                return;
-            }
-            if (!channel.send) {
-                channel.send = () => {};
-            }
-            this.onMessage({
-                ...e.d,
-                cleanContent: Util.cleanContent(e.d.content, channel),
-                system: (e.d.flags || 0) & 16 === 16,
-                guild,
-                channel,
-                member,
-            });
-        });
+        this.client.on('messageCreate', async msg => this.onMessage(msg));
         this.client.on('voiceStateUpdate', async (oldState, newState) => this.onLeaveVC(oldState, newState));
 
         //  cached-config
@@ -421,7 +399,8 @@ class ListenerClient {
                     config['mute-user'].push(id);
                     Config.save(config);
 
-                    msg.channel.send(`${id}をmuteしました`);
+                    const muteUser = await this.client.users.fetch(id);
+                    msg.channel.send(`${muteUser.username}(id:\`${muteUser.id}\`) をmuteしました`);
                     break;
                 }
 
@@ -462,7 +441,8 @@ class ListenerClient {
                     }
                     Config.save(config);
 
-                    msg.channel.send(`${id}をmute解除しました。`);
+                    const muteUser = await this.client.users.fetch(id);
+                    msg.channel.send(`${muteUser.username}(id:\`${muteUser.id}\`) をmute解除しました`);
                     break;
                 }
 
@@ -477,9 +457,9 @@ class ListenerClient {
                                     "- ^con : 読み上げを開始します\n" +
                                     "- ^dc : 切断します\n" +
                                     "- ^status : ステータスを表示します\n" +
-                                    "- ^dict add/remove <A> <B> : AをBと呼ぶ辞書の追加/削除\n" +
+                                    "- ^dict add/remove <A> <B> : AをBと読む辞書の追加/削除\n" +
                                     "- ^dict list <number> : 辞書一覧を表示します\n" +
-                                    "- ^setting speed <Value> : 読み上げるスピードを変更します\n" +
+                                    "- ^setting speed <value> : 読み上げるスピードを変更します(0.25以上4未満の浮動小数点数で指定できます。)\n" +
                                     "- ^skip : 読み上げをスキップします\n" +
                                     "- ^addrule @mention : 指定したBotを読み上げ対象にします\n" +
                                     "- ^deleterule @mention : 指定したBotを読み上げ対象から除外します\n" +
