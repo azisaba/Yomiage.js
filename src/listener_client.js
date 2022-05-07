@@ -441,7 +441,8 @@ class ListenerClient {
                     }
                     Config.save(config);
 
-                    msg.channel.send(`${id}をmute解除しました。`);
+                    const muteUser = await this.client.users.fetch(id);
+                    msg.channel.send(`${muteUser.username}(id:\`${muteUser.id}\`) をmute解除しました`);
                     break;
                 }
 
