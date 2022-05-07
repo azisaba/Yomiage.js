@@ -8,8 +8,7 @@ volume path for saving dictionary data.
 ## Install with docker-compose
 
 1. make data folder ,and put config.yml and google.json(google cloud auth key)
-2. copy example-docker-compose.yml to docker-compose.yml.
-3. run ``docker-compose up -d``
+2. run ``docker-compose up -d``
 
 ## Develop
 

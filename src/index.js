@@ -13,8 +13,6 @@ const dataDirectoryPath = process.env.DATA_DIRECTORY;
 ///////////////////////////
 //  load configuration
 const configData = Config.getConfig();
-console.log(configData.token);
-
 
 ///////////////////////////
 //  init dictionary
