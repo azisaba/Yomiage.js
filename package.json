@@ -6,7 +6,7 @@
   "scripts": {},
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "APACHE-2.0",
   "dependencies": {
     "@discordjs/opus": "^0.5.3",
     "@discordjs/voice": "^0.7.5",
