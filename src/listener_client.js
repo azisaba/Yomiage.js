@@ -136,6 +136,11 @@ class ListenerClient {
                     const cleanedArgs = msg.cleanContent.slice(1).split(' ');
                     switch (args[1]) {
                         case 'add': {
+                            //  permission
+                            if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                                msg.channel.send(":boom:エラー:権限がありません。");
+                                return;
+                            }
                             if (args.length < 4) {
                                 msg.channel.send(":boom:エラー:構文が不正です。");
                                 break;
@@ -146,6 +151,12 @@ class ListenerClient {
                             break;
                         }
                         case 'remove': {
+                            //  permission
+                            if (!await this.hasPermission(msg.member, 'yomiage-mod')) {
+                                msg.channel.send(":boom:エラー:権限がありません。");
+                                return;
+                            }
+
                             if (args.length < 3) {
                                 msg.channel.send(":boom:エラー:構文が不正です。");
                                 break;
