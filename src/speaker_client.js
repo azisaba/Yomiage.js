@@ -377,7 +377,7 @@ class SpeakerClient {
             await this.voiceGenerator(this._google_client, this._data_directory, message.message, speakingRate).then(async path => {
                 const player = createAudioPlayer({
                     behaviors: {
-                        noSubscriber: NoSubscriberBehavior.Play,
+                        noSubscriber: NoSubscriberBehavior.Pause,
                     }
                 });
 
@@ -389,7 +389,7 @@ class SpeakerClient {
                 const subscription = connection.subscribe(player);
 
                 //  wait until finish playing
-                while (player.state.status !== AudioPlayerStatus.Idle) {
+                while (player.state.status !== AudioPlayerStatus.Idle && player.state.status !== AudioPlayerStatus.AutoPaused) {
                     //  destroy request
                     if (this._destroy_request) {
                         //  stop
@@ -416,6 +416,8 @@ class SpeakerClient {
                 }
 
                 try {
+                    player.stop(true);
+                    subscription.unsubscribe()
                     fs.unlinkSync(path);
                 } catch (error) {
                     console.log(`error: ${path} is not exist`);
