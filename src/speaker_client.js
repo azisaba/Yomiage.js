@@ -11,7 +11,8 @@ const {
     getVoiceConnection,
     NoSubscriberBehavior,
     VoiceConnectionStatus,
-    AudioPlayerStatus
+    AudioPlayerStatus,
+    AudioPlayerIdleState
 } = require('@discordjs/voice');
 const textToSpeech = require('@google-cloud/text-to-speech');
 const fs = require('fs');
@@ -389,7 +390,7 @@ class SpeakerClient {
                 const subscription = connection.subscribe(player);
 
                 //  wait until finish playing
-                while (player.state.status !== AudioPlayerStatus.Idle && player.state.status !== AudioPlayerStatus.AutoPaused) {
+                while (player.state.status !== AudioPlayerStatus.Idle) {
                     //  destroy request
                     if (this._destroy_request) {
                         //  stop
@@ -411,8 +412,13 @@ class SpeakerClient {
                         break;
                     }
 
+                    if (player.state.status === AudioPlayerStatus.AutoPaused) {
+                        player.state = AudioPlayerIdleState
+                        console.log("debug at speaker: BREAK! status-> ", player.state.status)
+                        break;
+                    }
                     console.log("debug at speaker: sleep... status-> ", player.state.status)
-                    await this._sleep(100);
+                    await this._sleep(500);
                 }
 
                 try {
