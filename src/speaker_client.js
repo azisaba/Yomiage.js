@@ -364,37 +364,27 @@ class SpeakerClient {
             console.log(`vc: ${message.channel} message: ${message.message}`);
             //  check bot is connected
             const connection = getVoiceConnection(message.guild, this.client.user.id);
-            if (connection === undefined) {
-                console.log("debug at speaker: connection undefined!")
-
-                continue;
-            }
+            if (connection === undefined) continue;
 
             //  check voice channel id
             if (connection.joinConfig.channelId !== message.channel) continue;
 
-            console.log("debug at speaker: get speaking rate")
             const speakingRate = this.getSpeakingRate(message.guild);
 
             //  lock
             this._lock = true;
-            console.log("debug at speaker: lock")
 
             await this.voiceGenerator(this._google_client, this._data_directory, message.message, speakingRate).then(async path => {
-                console.log("debug at speaker: create audio player")
                 const player = createAudioPlayer({
                     behaviors: {
-                        noSubscriber: NoSubscriberBehavior.Pause,
+                        noSubscriber: NoSubscriberBehavior.Play,
                     }
                 });
 
-                console.log("debug at speaker: create audio source")
                 const resource = createAudioResource(path);
 
-                console.log("debug at speaker: play audio")
                 player.play(resource);
 
-                console.log("debug at speaker: connection subscribe player")
                 //  subscribe
                 const subscription = connection.subscribe(player);
 
@@ -402,8 +392,6 @@ class SpeakerClient {
                 while (player.state.status !== AudioPlayerStatus.Idle) {
                     //  destroy request
                     if (this._destroy_request) {
-                        console.log("debug at speaker: destory")
-
                         //  stop
                         player.stop(true);
                         subscription.unsubscribe();
@@ -413,8 +401,6 @@ class SpeakerClient {
                     }
                     //  skip
                     if (this._skip_queue.includes(message.channel)) {
-                        console.log("debug at speaker: skip")
-
                         //  stop
                         player.stop(true);
                         //  remove value
@@ -430,7 +416,6 @@ class SpeakerClient {
                 }
 
                 try {
-                    console.log("debug at speaker: unlike")
                     fs.unlinkSync(path);
                 } catch (error) {
                     console.log(`error: ${path} is not exist`);

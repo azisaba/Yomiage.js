@@ -3,11 +3,12 @@ const Dict = require('./dict.js');
 const ListenerClient = require('./listener_client.js');
 const SpeakerClient = require('./speaker_client.js');
 const ClientManager = require('./client_manager.js');
+const path = require("path");
 
 
 ///////////////////////////
 //  read environment valuables
-const dataDirectoryPath = process.env.DATA_DIRECTORY;
+const dataDirectoryPath = path.resolve(process.env.DATA_DIRECTORY);
 
 
 ///////////////////////////
