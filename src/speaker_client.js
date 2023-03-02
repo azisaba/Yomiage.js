@@ -318,12 +318,21 @@ class SpeakerClient {
             audioConfig: {audioEncoding: 'MP3', speakingRate: speed},
         };
 
+        console.log("debug at VoiceGenerator: fetching to google")
+
         const [response] = await client.synthesizeSpeech(request);
+
+        console.log("debug at VoiceGenerator: received voice data")
+
         //  file path
         const r = Math.floor(Math.random() * 100);
         const path = `${directory}/${r}.mp3`;
 
+        console.log("debug at VoiceGenerator: output file")
+
         fs.writeFileSync(path, response.audioContent, 'binary');
+
+        console.log("debug at VoiceGenerator: done")
 
         return new Promise(resolve => {
             resolve(path);
