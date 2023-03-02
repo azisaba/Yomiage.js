@@ -355,8 +355,6 @@ class SpeakerClient {
         }
 
         while (this._lock) {
-            console.log("debug at speaker: waiting unlock")
-
             await this._sleep(100);
         }
 
@@ -400,7 +398,6 @@ class SpeakerClient {
                 //  subscribe
                 const subscription = connection.subscribe(player);
 
-                console.log("debug at speaker: goto loop")
                 //  wait until finish playing
                 while (player.state.status !== AudioPlayerStatus.Idle) {
                     //  destroy request
@@ -428,7 +425,7 @@ class SpeakerClient {
                         break;
                     }
 
-                    console.log("debug at speaker: sleep")
+                    console.log("debug at speaker: sleep... status-> ", player.state.status)
                     await this._sleep(100);
                 }
 
